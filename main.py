@@ -21,8 +21,6 @@ from deepatlas.lib.transforms import default_transform_single_dataset_3d_us
 from deepatlas.utils.logger import setup_logger
 
 log = logging.getLogger(__name__)
-
-
 @click.group(chain=True)
 @click.option("--polyaxon", is_flag=True, help="enable polyaxon functions")
 @click.option("-d", "--debug", is_flag=True, help="enable debug mode")
@@ -33,9 +31,13 @@ log = logging.getLogger(__name__)
     default=True,
     help="enable wandb functions",
 )
-@click.option("--wandb-key", type=str, help="wandb key")
-@click.option("--wandb-project", type=str, default="monai_seg", help="wandb project")
+@click.option("--wandb-key", type=str, default="9b91b416fa5ca60d9c561c8837e1c68326cd0bd5", help="wandb key")
+#@click.option("--wandb-key", type=str, default=None, help="wandb key")
+@click.option("--wandb-project", type=str, default="Brain", help="wandb project")
+#@click.option("--wandb-project", type=str, default=None, help="wandb project")
 @click.pass_context
+
+
 def main(ctx, polyaxon, debug, wandb_enable, wandb_key, wandb_project):  # noqa: D401
     """Implementation of the DeepAtlas approach to segmentation and registration of medical images."""
     sitk.ProcessObject_SetGlobalWarningDisplay(False)
@@ -48,13 +50,14 @@ def main(ctx, polyaxon, debug, wandb_enable, wandb_key, wandb_project):  # noqa:
         wandb.init(mode="disabled")
     else:
         wandb.login(key=wandb_key)
-        wandb.init(project=wandb_project, entity="monai_us_segmentation")
+        wandb.init(project=wandb_project, entity="amel-bakhouche")
     if not polyaxon:
         os.environ["POLYAXON_NO_OP"] = "true"
         settings.NO_OP = True
-
-
+        
 @main.command()
+
+
 @click.option(
     "--batch-size",
     type=int,
@@ -136,7 +139,7 @@ def main(ctx, polyaxon, debug, wandb_enable, wandb_key, wandb_project):  # noqa:
 @click.option("--loss", type=str, default="dice", help="loss function to use")
 @click.option("--transformer", type=str, default="default", help="transformer to use")
 @click.option(
-    "--num-seg-classes", type=int, default=4, help="number of segmentation classes"
+    "--num-seg-classes", type=int, default=19, help="number of segmentation classes"
 )
 @click.pass_context
 def train(
@@ -387,7 +390,7 @@ def train(
 )
 @click.option("--transformer", type=str, default="default", help="transformer to use")
 @click.option(
-    "--num-seg-classes", type=int, default=4, help="number of segmentation classes"
+    "--num-seg-classes", type=int, default=19, help="number of segmentation classes"
 )
 @click.option("--batch-size", type=int, default=1, help="batch size")
 @click.pass_context
@@ -425,7 +428,7 @@ def infer(
     num_segmentation_classes = ctx.obj.get("NUM_SEG_CLASSES") or num_seg_classes
     transformer = ctx.obj.get("TRANSFORMER") or transformer
     summary_output_dir = ctx.obj.get("OUTPUT_DIR") or "data/output"
-
+    
     if on_polyaxon:
         output_dir = get_outputs_path()
         summary_output_dir = get_outputs_path()
@@ -474,6 +477,8 @@ def infer(
         )
         seg_inferer = seg.infer()
         transformer_seg = seg.transformer()
+        print("HHHHHHHHHIIIIIIIIIII", transformer_seg)
+        #print('transformer_seg',transformer_seg)
         dataloader_seg = seg.dataloader()
         if seg_path:
             ## load checkpoints
@@ -549,7 +554,7 @@ def metrics(
     writer = ctx.obj.get("WRITER") or SummaryWriter(log_dir=output_dir)
 
     joint = DeepatlasConfig()
-    joint.init(num_segmentation_classes=4)
+    joint.init(num_segmentation_classes=19)
 
     dataloader_seg, _ = joint.dataloader()
 
