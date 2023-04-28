@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
     "--wandb/--no-wandb",
     "wandb_enable",
     is_flag=True,
-    default=False,
+    default=True,
     help="enable wandb functions",
 )
 @click.option("--wandb-key", type=str, help="wandb key")
